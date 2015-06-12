@@ -5,5 +5,5 @@ project(levelset)
 set(CMAKE_CXX_FLAGS "-std=c++11 -march=native -O3")
 
 find_package(OpenCV REQUIRED)
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp PatternFeature.cpp)
 target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})

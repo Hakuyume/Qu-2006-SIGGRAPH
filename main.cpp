@@ -1,34 +1,10 @@
 #include <iostream>
-#include <array>
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 
-constexpr int scales = 4;
-constexpr int orientations = 6;
-
-using Feature = std::array<double, scales * orientations * 2>;
-
-Feature patternFeature(const cv::Mat &input)
-{
-  Feature feature;
-
-  for (int m = 0; m < scales; m++)
-    for (int n = 0; n < orientations; n++) {
-      const auto gabor = cv::getGaborKernel(cv::Size(25, 25), 2, CV_PI / 2, 5, 1);
-      cv::Mat wavelet;
-      cv::filter2D(input, wavelet, -1, gabor);
-
-      cv::Scalar mean, deviation;
-      cv::meanStdDev(wavelet, mean, deviation);
-
-      feature.at((orientations * m + n) * 2 + 0) = mean.val[0];
-      feature.at((orientations * m + n) * 2 + 1) = deviation.val[0];
-    }
-
-  return feature;
-}
+#include "PatternFeature.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -45,8 +21,8 @@ int main(int argc, char *argv[])
   cv::namedWindow("select", cv::WINDOW_AUTOSIZE);
   cv::imshow("select", input & select);
 
-  for (auto &t : patternFeature(input & select))
-    std::cout << t << std::endl;
+  PatternFeature user{input & select};
+  std::cout << user << std::endl;
 
   cv::waitKey(0);
 
