@@ -4,12 +4,20 @@ PatternFeature::PatternFeature(const cv::Mat &src)
 {
   for (int m = 0; m < scales; m++)
     for (int n = 0; n < orientations; n++) {
-      const auto gabor = cv::getGaborKernel(cv::Size(25, 25), 2, CV_PI / 2, 5, 1);
+      const auto gabor = cv::getGaborKernel(
+                             cv::Size(ksize, ksize),
+                             pow(alpha, m) * sigma_u,
+                             n * CV_PI / orientations,
+                             lambda,
+                             sigma_u / sigma_v,
+                             0) *
+                         pow(alpha, -m) *
+                         exp(2 * CV_PI * CV_PI * pow(alpha, 2 * m) * sigma_u * sigma_u / (lambda * lambda));
       cv::Mat wavelet;
-      cv::filter2D(src, wavelet, -1, gabor);
+      cv::filter2D(src, wavelet, CV_64F, gabor);
 
       cv::Scalar mean, deviation;
-      cv::meanStdDev(wavelet, mean, deviation);
+      cv::meanStdDev(cv::abs(wavelet), mean, deviation);
 
       means.at(orientations * m + n) = mean.val[0];
       deviations.at(orientations * m + n) = deviation.val[0];

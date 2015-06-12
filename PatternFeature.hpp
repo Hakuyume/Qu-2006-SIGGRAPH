@@ -13,6 +13,12 @@ private:
   static constexpr int scales = 4;
   static constexpr int orientations = 6;
 
+  static constexpr int ksize = 9;
+  static constexpr double alpha = 1.1;
+  static constexpr double lambda = 2;
+  static constexpr double sigma_u = 2;
+  static constexpr double sigma_v = 2;
+
   std::array<double, scales * orientations> means, deviations;
 
 public:
