@@ -24,6 +24,18 @@ PatternFeature::PatternFeature(const cv::Mat &src)
     }
 }
 
+double PatternFeature::distance(const PatternFeature &patFeat) const
+{
+  double sum = 0;
+
+  for (int i = 0; i < scales * orientations; i++) {
+    sum += (patFeat.means.at(i) - means.at(i)) * (patFeat.means.at(i) - means.at(i));
+    sum += (patFeat.deviations.at(i) - deviations.at(i)) * (patFeat.deviations.at(i) - deviations.at(i));
+  }
+
+  return sum;
+}
+
 std::vector<double> PatternFeature::featureVector(void) const
 {
   std::vector<double> vec;

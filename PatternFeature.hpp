@@ -16,13 +16,14 @@ private:
   static constexpr int ksize = 9;
   static constexpr double alpha = 1.1;
   static constexpr double lambda = 2;
-  static constexpr double sigma_u = 2;
-  static constexpr double sigma_v = 2;
+  static constexpr double sigma_u = 0.25;
+  static constexpr double sigma_v = 0.25;
 
   std::array<double, scales * orientations> means, deviations;
 
 public:
   PatternFeature(const cv::Mat &src);
+  double distance(const PatternFeature &patFeat) const;
   std::vector<double> featureVector(void) const;
 };
 

@@ -16,13 +16,45 @@ int main(int argc, char *argv[])
   cv::namedWindow("input", cv::WINDOW_AUTOSIZE);
   cv::imshow("input", input);
 
-  cv::Mat select = cv::Mat::zeros(input.size(), CV_8U);
-  cv::circle(select, cv::Point(150, 120), 20, cv::Scalar::all(0xff), -1);
-  cv::namedWindow("select", cv::WINDOW_AUTOSIZE);
-  cv::imshow("select", input & select);
+  int hsize = 4;
+  std::vector<cv::Point> centers{
+      cv::Point(150, 120),
+      cv::Point(175, 105),
+      cv::Point(200, 90),
 
-  PatternFeature user{input & select};
-  std::cout << user << std::endl;
+      cv::Point(110, 240),
+      cv::Point(130, 230),
+      cv::Point(150, 220),
+
+      cv::Point(150, 300),
+      cv::Point(165, 275),
+      cv::Point(180, 250),
+
+      cv::Point(45, 175),
+      cv::Point(50, 200),
+      cv::Point(55, 225)};
+
+  auto rois = input.clone();
+  std::vector<PatternFeature> features;
+
+  for (auto &center : centers) {
+    cv::Rect roi{
+        center.x - hsize,
+        center.y - hsize,
+        hsize * 2 + 1,
+        hsize * 2 + 1};
+
+    cv::rectangle(rois, roi, cv::Scalar(255));
+
+    features.push_back(PatternFeature(input(roi)));
+  }
+
+  cv::namedWindow("rois", cv::WINDOW_AUTOSIZE);
+  cv::imshow("rois", rois);
+
+  for (int i = 0; i < features.size(); i++)
+    for (int j = i + 1; j < features.size(); j++)
+      std::cout << i << "-" << j << "\t" << features.at(i).distance(features.at(j)) << std::endl;
 
   cv::waitKey(0);
 
