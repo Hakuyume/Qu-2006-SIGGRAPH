@@ -8,7 +8,7 @@ namespace pattern
 static constexpr int scales = 4;
 static constexpr int orientations = 6;
 
-static constexpr int ksize = 9;
+static constexpr int window = 16;
 static constexpr double alpha = 1.1;
 static constexpr double lambda = 2;
 static constexpr double sigma_u = 0.25;

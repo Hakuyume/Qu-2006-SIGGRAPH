@@ -7,21 +7,20 @@ pattern::Feature pattern::getFeature(const cv::Mat &src, const cv::Point &pos)
   pattern::Feature feature;
 
   const auto roi = src(cv::Rect(
-      pos.x - ksize / 2,
-      pos.y - ksize / 2,
-      ksize, ksize));
+      pos.x - window / 2,
+      pos.y - window / 2,
+      window, window));
 
   for (int m = 0; m < scales; m++)
     for (int n = 0; n < orientations; n++) {
       const auto gabor = cv::getGaborKernel(
-                             cv::Size(ksize, ksize),
+                             cv::Size(window, window),
                              pow(alpha, m) * sigma_u,
                              n * CV_PI / orientations,
-                             lambda,
+                             2 * CV_PI * pow(alpha, m) * sigma_u * sigma_u / window,
                              sigma_u / sigma_v,
                              0) *
-                         pow(alpha, -m) *
-                         exp(2 * CV_PI * CV_PI * pow(alpha, 2 * m) * sigma_u * sigma_u / (lambda * lambda));
+                         pow(alpha, -m);
       cv::Mat wavelet;
       cv::filter2D(roi, wavelet, CV_64F, gabor);
 
