@@ -16,8 +16,7 @@ int main(int argc, char *argv[])
   cv::namedWindow("input", cv::WINDOW_AUTOSIZE);
   cv::imshow("input", input);
 
-  int hsize = 4;
-  std::vector<cv::Point> centers{
+  std::vector<cv::Point> points{
       cv::Point(150, 120),
       cv::Point(175, 105),
       cv::Point(200, 90),
@@ -34,23 +33,17 @@ int main(int argc, char *argv[])
       cv::Point(50, 200),
       cv::Point(55, 225)};
 
-  auto rois = input.clone();
+  auto result = input.clone();
   std::vector<PatternFeature> features;
 
-  for (auto &center : centers) {
-    cv::Rect roi{
-        center.x - hsize,
-        center.y - hsize,
-        hsize * 2 + 1,
-        hsize * 2 + 1};
+  for (auto &p : points) {
+    cv::circle(result, p, 5, cv::Scalar(0), -1);
 
-    cv::rectangle(rois, roi, cv::Scalar(255));
-
-    features.push_back(PatternFeature(input(roi)));
+    features.push_back(PatternFeature(input, p));
   }
 
-  cv::namedWindow("rois", cv::WINDOW_AUTOSIZE);
-  cv::imshow("rois", rois);
+  cv::namedWindow("result", cv::WINDOW_AUTOSIZE);
+  cv::imshow("result", result);
 
   for (int i = 0; i < features.size(); i++)
     for (int j = i + 1; j < features.size(); j++)

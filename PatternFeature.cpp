@@ -1,7 +1,12 @@
 #include "PatternFeature.hpp"
 
-PatternFeature::PatternFeature(const cv::Mat &src)
+PatternFeature::PatternFeature(const cv::Mat &src, const cv::Point &pos)
 {
+  const auto roi = src(cv::Rect(
+      pos.x - ksize / 2,
+      pos.y - ksize / 2,
+      ksize, ksize));
+
   for (int m = 0; m < scales; m++)
     for (int n = 0; n < orientations; n++) {
       const auto gabor = cv::getGaborKernel(
@@ -14,7 +19,7 @@ PatternFeature::PatternFeature(const cv::Mat &src)
                          pow(alpha, -m) *
                          exp(2 * CV_PI * CV_PI * pow(alpha, 2 * m) * sigma_u * sigma_u / (lambda * lambda));
       cv::Mat wavelet;
-      cv::filter2D(src, wavelet, CV_64F, gabor);
+      cv::filter2D(roi, wavelet, CV_64F, gabor);
 
       cv::Scalar mean, deviation;
       cv::meanStdDev(cv::abs(wavelet), mean, deviation);

@@ -22,7 +22,7 @@ private:
   std::array<double, scales * orientations> means, deviations;
 
 public:
-  PatternFeature(const cv::Mat &src);
+  PatternFeature(const cv::Mat &src, const cv::Point &pos);
   double distance(const PatternFeature &patFeat) const;
   std::vector<double> featureVector(void) const;
 };
