@@ -4,7 +4,7 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
 
-#include "PatternFeature.hpp"
+#include "pattern.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -34,12 +34,12 @@ int main(int argc, char *argv[])
       cv::Point(55, 225)};
 
   auto result = input.clone();
-  std::vector<PatternFeature> features;
+  std::vector<pattern::Feature> features;
 
   for (auto &p : points) {
     cv::circle(result, p, 5, cv::Scalar(0), -1);
 
-    features.push_back(PatternFeature(input, p));
+    features.push_back(pattern::getFeature(input, p));
   }
 
   cv::namedWindow("result", cv::WINDOW_AUTOSIZE);
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 
   for (int i = 0; i < features.size(); i++)
     for (int j = i + 1; j < features.size(); j++)
-      std::cout << i << "-" << j << "\t" << features.at(i).distance(features.at(j)) << std::endl;
+      std::cout << i << "-" << j << "\t" << (features.at(i) - features.at(j)).squaredNorm() << std::endl;
 
   cv::waitKey(0);
 
