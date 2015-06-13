@@ -14,7 +14,8 @@ static constexpr double lambda = 2;
 static constexpr double sigma_u = 0.25;
 static constexpr double sigma_v = 0.25;
 
-using Feature = Eigen::Matrix<double, scales * orientations * 2, 1>;
+static constexpr size_t featureSize = scales * orientations * 2;
+using Feature = Eigen::Matrix<double, featureSize, 1>;
 
 Feature getFeature(const cv::Mat &src, const cv::Point &pos);
 };
