@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
   cv::namedWindow("result", cv::WINDOW_AUTOSIZE);
   cv::imshow("result", result);
 
-  for (int i = 0; i < features.size(); i++)
-    for (int j = i + 1; j < features.size(); j++)
+  for (size_t i = 0; i < features.size(); i++)
+    for (size_t j = i + 1; j < features.size(); j++)
       std::cout << i << "-" << j << "\t" << (features.at(i) - features.at(j)).squaredNorm() << std::endl;
 
   cv::waitKey(0);
