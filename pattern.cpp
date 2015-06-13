@@ -1,6 +1,5 @@
-#include <opencv2/imgproc.hpp>
-
 #include "pattern.hpp"
+#include <opencv2/imgproc.hpp>
 
 pattern::Feature pattern::getFeature(const cv::Mat &src, const cv::Point &pos)
 {
