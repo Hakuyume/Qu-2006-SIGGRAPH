@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Eigen/Core>
 #include <opencv2/core.hpp>
 
 namespace pattern
@@ -13,8 +12,9 @@ static constexpr double alpha{1.1};
 static constexpr double sigma_u{0.25};
 static constexpr double sigma_v{0.25};
 
-static constexpr size_t featureSize{scales * orientations * 2};
-using Feature = Eigen::Matrix<double, featureSize, 1>;
+static constexpr size_t featureChannels{scales * orientations * 2};
+using featureVec = cv::Vec<double, featureChannels>;
 
-Feature getFeature(const cv::Mat &src, const cv::Point &pos);
+void getFeature(const cv::Mat &src, cv::Mat &dst);
+void getDiff(const cv::Mat &src, cv::Mat &dst, const featureVec &feature);
 };

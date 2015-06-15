@@ -1,14 +1,12 @@
 #include "pattern.hpp"
+#include <vector>
 #include <opencv2/imgproc.hpp>
 
-pattern::Feature pattern::getFeature(const cv::Mat &src, const cv::Point &pos)
+void pattern::getFeature(const cv::Mat &src, cv::Mat &dst)
 {
-  pattern::Feature feature;
+  std::vector<cv::Mat> channels;
 
-  const auto roi = src(cv::Rect(
-      pos.x - window / 2,
-      pos.y - window / 2,
-      window, window));
+  const auto averageKernel = cv::Mat::ones(cv::Size(window, window), CV_64F) / (window * window);
 
   for (size_t m = 0; m < scales; m++) {
     const double alpha_m{pow(alpha, m)};
@@ -23,15 +21,39 @@ pattern::Feature pattern::getFeature(const cv::Mat &src, const cv::Point &pos)
                              0) /
                          alpha_m;
       cv::Mat wavelet;
-      cv::filter2D(roi, wavelet, CV_64F, gabor);
+      cv::filter2D(src, wavelet, CV_64F, gabor);
+      wavelet = cv::abs(wavelet);
 
-      cv::Scalar mean, deviation;
-      cv::meanStdDev(cv::abs(wavelet), mean, deviation);
+      cv::Mat mean;
+      cv::filter2D(wavelet, mean, CV_64F, averageKernel);
+      cv::Mat squaredMean;
+      cv::pow(mean, 2, squaredMean);
 
-      feature((orientations * m + n) * 2 + 0) = mean.val[0];
-      feature((orientations * m + n) * 2 + 1) = deviation.val[0];
+      cv::Mat squaredWavelet;
+      cv::pow(wavelet, 2, squaredWavelet);
+      cv::Mat meanSquared;
+      cv::filter2D(squaredWavelet, meanSquared, CV_64F, averageKernel);
+
+      cv::Mat deviation;
+      cv::sqrt(meanSquared - squaredMean, deviation);
+
+      channels.push_back(mean);
+      channels.push_back(deviation);
     }
   }
+  cv::merge(channels, dst);
+}
 
-  return feature;
+void pattern::getDiff(const cv::Mat &src, cv::Mat &dst, const pattern::featureVec &feature)
+{
+  dst = cv::Mat::zeros(src.size(), CV_64F);
+
+  std::vector<cv::Mat> channels;
+  cv::split(src, channels);
+
+  for (size_t i = 0; i < featureChannels; i++) {
+    cv::Mat diff;
+    cv::pow(channels.at(i) - feature(i), 2, diff);
+    dst += diff;
+  }
 }

@@ -13,10 +13,7 @@ void gradient(const cv::Mat &src, cv::Mat &dst)
   cv::Sobel(src, grad_x, CV_64F, 1, 0);
   cv::Sobel(src, grad_y, CV_64F, 0, 1);
 
-  cv::pow(grad_x, 2, grad_x);
-  cv::pow(grad_y, 2, grad_y);
-
-  cv::sqrt(grad_x + grad_y, dst);
+  cv::magnitude(grad_x, grad_y, dst);
 }
 
 void propagate(const cv::Mat &src, cv::Mat &phi, const cv::Mat &diff)
@@ -24,7 +21,7 @@ void propagate(const cv::Mat &src, cv::Mat &phi, const cv::Mat &diff)
   cv::Mat grad;
   gradient(src, grad);
 
-  phi -= grad.mul(1 / (1 + diff));
+  phi -= grad.mul(1 / (1 + diff / 100));
 }
 
 int main(int argc, char *argv[])
@@ -35,17 +32,16 @@ int main(int argc, char *argv[])
   if (input.empty())
     return 1;
 
+  cv::Mat feature;
+  pattern::getFeature(input, feature);
+
   cv::namedWindow("input", cv::WINDOW_AUTOSIZE);
   cv::imshow("input", input);
 
   const cv::Point center{175, 105};
-  const auto feature = pattern::getFeature(input, center);
 
-  cv::Mat diff{input.size(), CV_64F};
-#pragma omp parallel for
-  for (size_t i = pattern::window / 2; i < input.rows - pattern::window / 2; i++)
-    for (size_t j = pattern::window / 2; j < input.cols - pattern::window / 2; j++)
-      diff.at<double>(i, j) = (pattern::getFeature(input, cv::Point(j, i)) - feature).squaredNorm();
+  cv::Mat diff;
+  pattern::getDiff(feature, diff, feature.at<pattern::featureVec>(center));
 
   cv::Mat phi{input.size(), CV_64F};
 #pragma omp parallel for
