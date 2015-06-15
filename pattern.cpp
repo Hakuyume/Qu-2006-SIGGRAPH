@@ -11,7 +11,7 @@ pattern::Feature pattern::getFeature(const cv::Mat &src, const cv::Point &pos)
       window, window));
 
   for (size_t m = 0; m < scales; m++) {
-    const auto alpha_m = pow(alpha, m);
+    const double alpha_m{pow(alpha, m)};
 
     for (size_t n = 0; n < orientations; n++) {
       const auto gabor = cv::getGaborKernel(
