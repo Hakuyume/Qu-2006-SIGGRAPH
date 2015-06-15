@@ -43,12 +43,15 @@ int main(int argc, char *argv[])
     sum += pattern::getFeature(input, p);
   const auto userFeature = sum / points.size();
 
-  cv::Mat result = cv::Mat::zeros(input.size(), CV_8U);
+  cv::Mat mask = cv::Mat::zeros(input.size(), CV_8U);
 
-  expand(input, result, userFeature, points.at(0));
+  expand(input, mask, userFeature, points.at(0));
 
   cv::namedWindow("result", cv::WINDOW_AUTOSIZE);
-  cv::imshow("result", input & result);
+  std::vector<cv::Mat> channels{input, input, input | mask};
+  cv::Mat result;
+  cv::merge(channels, result);
+  cv::imshow("result", result);
 
   cv::waitKey(0);
 
