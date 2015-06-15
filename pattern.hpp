@@ -10,7 +10,6 @@ static constexpr size_t orientations = 6;
 
 static constexpr size_t window = 16;
 static constexpr double alpha = 1.1;
-static constexpr double lambda = 2;
 static constexpr double sigma_u = 0.25;
 static constexpr double sigma_v = 0.25;
 
