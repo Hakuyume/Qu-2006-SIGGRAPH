@@ -41,16 +41,22 @@ int main(int argc, char *argv[])
   pattern::Feature sum = pattern::Feature::Zero();
   for (auto &p : points)
     sum += pattern::getFeature(input, p);
-  const auto userFeature = sum / points.size();
+  const auto feature = sum / points.size();
 
-  cv::Mat mask = cv::Mat::zeros(input.size(), CV_8U);
+  cv::Mat distance = cv::Mat::zeros(input.size(), CV_8U);
 
-  expand(input, mask, userFeature, points.at(0));
+#pragma omp parallel for
+  for (size_t i = pattern::window / 2; i < input.rows - pattern::window / 2; i++)
+    for (size_t j = pattern::window / 2; j < input.cols - pattern::window / 2; j++)
+      distance.at<unsigned char>(i, j) = 0xff / (1 + (pattern::getFeature(input, cv::Point(j, i)) - feature).squaredNorm() / 100000);
 
-  cv::namedWindow("result", cv::WINDOW_AUTOSIZE);
-  std::vector<cv::Mat> channels{input, input, input | mask};
+  cv::namedWindow("distance", cv::WINDOW_AUTOSIZE);
+  cv::imshow("distance", distance);
+
+  std::vector<cv::Mat> channels{input, input, distance};
   cv::Mat result;
   cv::merge(channels, result);
+  cv::namedWindow("result", cv::WINDOW_AUTOSIZE);
   cv::imshow("result", result);
 
   cv::waitKey(0);
