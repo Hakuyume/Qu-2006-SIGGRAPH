@@ -6,20 +6,25 @@
 
 #include "pattern.hpp"
 
-void expand(const cv::Mat &src, cv::Mat &dst, const pattern::Feature &feature, const cv::Point &pos)
+void gradient(const cv::Mat &src, cv::Mat &dst)
 {
-  if (dst.at<unsigned char>(pos))
-    return;
+  cv::Mat grad_x, grad_y;
 
-  if ((pattern::getFeature(src, pos) - feature).squaredNorm() > 10000)
-    return;
+  cv::Sobel(src, grad_x, CV_64F, 1, 0);
+  cv::Sobel(src, grad_y, CV_64F, 0, 1);
 
-  dst.at<unsigned char>(pos) = 0xff;
+  cv::pow(grad_x, 2, grad_x);
+  cv::pow(grad_y, 2, grad_y);
 
-  expand(src, dst, feature, pos + cv::Point(-1, 0));
-  expand(src, dst, feature, pos + cv::Point(+1, 0));
-  expand(src, dst, feature, pos + cv::Point(0, -1));
-  expand(src, dst, feature, pos + cv::Point(0, +1));
+  cv::sqrt(grad_x + grad_y, dst);
+}
+
+void propagate(const cv::Mat &src, cv::Mat &phi, const cv::Mat &diff)
+{
+  cv::Mat grad;
+  gradient(src, grad);
+
+  phi -= grad.mul(1 / (1 + diff));
 }
 
 int main(int argc, char *argv[])
@@ -33,33 +38,30 @@ int main(int argc, char *argv[])
   cv::namedWindow("input", cv::WINDOW_AUTOSIZE);
   cv::imshow("input", input);
 
-  std::vector<cv::Point> points{
-      cv::Point(150, 120),
-      cv::Point(175, 105),
-      cv::Point(200, 90)};
+  const cv::Point center{175, 105};
+  const auto feature = pattern::getFeature(input, center);
 
-  pattern::Feature sum = pattern::Feature::Zero();
-  for (auto &p : points)
-    sum += pattern::getFeature(input, p);
-  const auto feature = sum / points.size();
-
-  cv::Mat distance = cv::Mat::zeros(input.size(), CV_8U);
-
+  cv::Mat diff{input.size(), CV_64F};
 #pragma omp parallel for
   for (size_t i = pattern::window / 2; i < input.rows - pattern::window / 2; i++)
     for (size_t j = pattern::window / 2; j < input.cols - pattern::window / 2; j++)
-      distance.at<unsigned char>(i, j) = 0xff / (1 + (pattern::getFeature(input, cv::Point(j, i)) - feature).squaredNorm() / 100000);
+      diff.at<double>(i, j) = (pattern::getFeature(input, cv::Point(j, i)) - feature).squaredNorm();
 
-  cv::namedWindow("distance", cv::WINDOW_AUTOSIZE);
-  cv::imshow("distance", distance);
+  cv::Mat phi{input.size(), CV_64F};
+#pragma omp parallel for
+  for (size_t i = 0; i < input.rows; i++)
+    for (size_t j = 0; j < input.cols; j++)
+      phi.at<double>(i, j) = sqrt((j - center.x) * (j - center.x) + (i - center.y) * (i - center.y));
 
-  std::vector<cv::Mat> channels{input, input, distance};
-  cv::Mat result;
-  cv::merge(channels, result);
-  cv::namedWindow("result", cv::WINDOW_AUTOSIZE);
-  cv::imshow("result", result);
+  cv::namedWindow("phi", cv::WINDOW_AUTOSIZE);
+  cv::imshow("phi", phi);
 
-  cv::waitKey(0);
+  while (true) {
+    propagate(input, phi, diff);
+    cv::imshow("phi", phi);
+    if (cv::waitKey(0) == 'q')
+      break;
+  }
 
   return 0;
 }
