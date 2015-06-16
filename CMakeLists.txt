@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.91)
 
-project(levelset)
+project(manga-colorize)
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -march=native -O3")
 
